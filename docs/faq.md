@@ -6,26 +6,50 @@
 
 ### Q1: 安装时出现CUDA错误怎么办？
 
-**A**: 这通常是CUDA版本不匹配导致的：
+**A**: CUDA错误通常由版本不匹配引起，按以下步骤排查：
 
-1. **检查CUDA版本**:
+1. **检查CUDA版本兼容性**:
    ```bash
-   nvidia-smi  # 查看驱动支持的CUDA版本
-   nvcc --version  # 查看已安装的CUDA版本
+   # 检查GPU驱动支持的最高CUDA版本
+   nvidia-smi
+   
+   # 检查系统安装的CUDA版本
+   nvcc --version
+   
+   # 检查PyTorch的CUDA版本
+   python -c "import torch; print('PyTorch CUDA版本:', torch.version.cuda)"
    ```
 
-2. **安装匹配的PyTorch版本**:
+2. **安装兼容的PyTorch版本**:
    ```bash
-   # CUDA 11.8
-   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+   # 对于CUDA 11.8
+   pip install torch==1.12.1+cu118 torchvision==0.13.1+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
    
-   # CUDA 12.1
+   # 对于CUDA 11.3  
+   pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
+   
+   # 对于CUDA 12.1
    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
    ```
 
-3. **验证安装**:
+3. **验证CUDA可用性**:
    ```bash
-   python -c "import torch; print('CUDA available:', torch.cuda.is_available())"
+   python -c "
+   import torch
+   print(f'PyTorch版本: {torch.__version__}')
+   print(f'CUDA可用: {torch.cuda.is_available()}')
+   if torch.cuda.is_available():
+       print(f'CUDA版本: {torch.version.cuda}')
+       print(f'GPU数量: {torch.cuda.device_count()}')
+       print(f'当前GPU: {torch.cuda.get_device_name()}')
+   "
+   ```
+
+4. **如果仍有问题**:
+   ```bash
+   # 完全重新安装
+   pip uninstall torch torchvision
+   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
    ```
 
 ### Q2: 为什么模型下载很慢或失败？

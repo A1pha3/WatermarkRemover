@@ -57,35 +57,46 @@ python inference_propainter.py [OPTIONS]
 #### 使用示例
 
 ```bash
-# 基本用法
+# 基本用法 - 最简单的调用方式
 python inference_propainter.py \
     --video input.mp4 \
     --mask mask.png
 
-# 内存优化
+# 内存优化 - 适用于显存不足的情况
 python inference_propainter.py \
     --video input.mp4 \
     --mask mask.png \
     --fp16 \
     --neighbor_length 5 \
-    --subvideo_length 50
+    --subvideo_length 50 \
+    --ref_stride 20
 
-# 自定义输出
+# 自定义输出 - 指定输出路径和格式
 python inference_propainter.py \
     --video input.mp4 \
     --mask mask.png \
     --output custom_results \
     --save_frames \
+    --save_flow \
     --height 480 \
     --width 640
 
-# 高质量处理
+# 高质量处理 - 追求最佳效果
 python inference_propainter.py \
     --video input.mp4 \
     --mask mask.png \
     --neighbor_length 15 \
     --ref_stride 5 \
-    --resize_ratio 1.0
+    --resize_ratio 1.0 \
+    --subvideo_length 80
+
+# 批量处理优化 - 处理长视频
+python inference_propainter.py \
+    --video long_video.mp4 \
+    --mask mask.png \
+    --subvideo_length 40 \
+    --fp16 \
+    --neighbor_length 8
 ```
 
 ## 训练接口

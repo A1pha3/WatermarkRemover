@@ -115,45 +115,55 @@ python scripts/compute_flow.py \
 
 ### ProPainter主网络配置
 
-配置文件：`configs/train_propainter.json`
+配置文件：`configs/train_propainter.json` (基于实际项目配置)
 
 ```json
 {
     "name": "ProPainter_Train",
     "model": "propainter",
-    "gpu_ids": [0, 1],
+    "gpu_ids": [0],
+    "strict_load": false,
+    
     "datasets": {
         "train": {
-            "name": "ProPainterTrainDataset",
-            "data_root": "datasets/youtube-vos",
-            "flow_root": "datasets/youtube-vos/flows_432_240",
-            "num_frames": 5,
+            "name": "InpaintingTrain",
+            "data_root": "datasets/youtube-vos/JPEGImages_432_240",
+            "flow_root": "datasets/youtube-vos/flows_432_240", 
+            "mask_root": "datasets/youtube-vos/test_masks",
+            "num_local_frames": 5,
+            "num_ref_frames": -1,
             "size": [432, 240],
-            "batch_size": 4
+            "random_reverse_clip": true,
+            "flip": true
         }
     },
+    
     "train": {
         "lr": 1e-4,
-        "lr_scheme": "CosineAnnealingLR",
-        "T_max": 300000,
-        "total_iter": 300000,
-        "warmup": 1000,
+        "lr_scheme": "MultiStepLR",
+        "lr_steps": [400000],
+        "lr_gamma": 0.1,
+        "total_iter": 700000,
+        "warmup": -1,
         "beta1": 0.9,
         "beta2": 0.999,
         "weight_decay": 0,
         "save_freq": 10000,
-        "val_freq": 5000
+        "val_freq": 5000,
+        "log_freq": 100,
+        "batch_size": 8
     },
+    
     "loss": {
         "l1_weight": 1.0,
         "perceptual_weight": 0.1,
         "style_weight": 120.0,
-        "adversarial_weight": 0.01,
-        "flow_weight": 0.25,
-        "warp_weight": 0.1
+        "adversarial_weight": 0.01
     }
 }
 ```
+
+> **注意**: 以上配置基于项目实际的配置文件，与论文中可能略有差异。
 
 ## 训练流程
 
@@ -176,12 +186,24 @@ python train.py -c configs/train_flowcomp.json
 python train.py -c configs/train_propainter.json
 ```
 
-训练参数说明（基于实际配置文件）：
-- **学习率**: 1e-4，使用MultiStepLR调度
-- **批次大小**: 8
-- **训练迭代**: 700,000次
-- **保存频率**: 每10,000次迭代保存一次
-- **学习率衰减**: 在400k步时衰减0.1倍
+**重要**: 确保已经训练好光流补全网络，因为ProPainter依赖光流补全的结果。
+
+#### 训练参数说明（基于实际配置文件）：
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| **学习率** | 1e-4 | 初始学习率 |
+| **学习率调度** | MultiStepLR | 在400k步时衰减0.1倍 |
+| **批次大小** | 8 | 每个GPU的批次大小 |
+| **训练迭代** | 700,000次 | 总训练步数 |
+| **保存频率** | 10,000步 | checkpoint保存间隔 |
+| **验证频率** | 5,000步 | 验证评估间隔 |
+| **日志频率** | 100步 | 训练日志输出间隔 |
+
+#### 数据增强策略：
+- **随机翻转**: 水平翻转增强
+- **随机反向**: 时序反向播放
+- **帧采样**: 动态帧数采样
 
 ### 恢复训练
 

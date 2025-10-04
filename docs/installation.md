@@ -5,16 +5,34 @@
 ## 系统要求
 
 ### 硬件要求
-- **GPU**: NVIDIA GPU，支持CUDA 9.2或更高版本
-- **内存**: 建议16GB以上系统内存
-- **显存**: 建议8GB以上显存（具体需求见[内存优化指南](memory_optimization.md)）
+
+#### 最低配置
+- **GPU**: NVIDIA GTX 1060 6GB 或同等性能
+- **系统内存**: 16GB RAM
+- **存储空间**: 5GB可用空间
+
+#### 推荐配置  
+- **GPU**: NVIDIA RTX 3080 或更高（12GB+ 显存）
+- **系统内存**: 32GB RAM
+- **存储空间**: 10GB可用空间（包含数据集）
+
+#### 专业配置
+- **GPU**: NVIDIA RTX 4090 或 A100（24GB+ 显存）
+- **系统内存**: 64GB RAM
+- **存储空间**: 50GB+ SSD存储
 
 ### 软件要求
-- **操作系统**: Linux, macOS, Windows
-- **Python**: 3.8+
-- **CUDA**: 9.2+
-- **PyTorch**: 1.7.1+
-- **Torchvision**: 0.8.2+
+
+#### 必需软件
+- **操作系统**: Linux (Ubuntu 18.04+), macOS (10.15+), Windows 10+
+- **Python**: 3.8 - 3.10 (推荐 3.8)
+- **CUDA**: 10.2+ (推荐 11.3+)
+- **Git**: 用于克隆仓库
+
+#### Python依赖
+- **PyTorch**: 1.7.1+ (推荐 1.12.1)
+- **Torchvision**: 0.8.2+ (推荐 0.13.1)
+- **OpenCV**: 4.5.0+
 - **其他依赖**: 详见 `requirements.txt`
 
 ## 安装步骤
