@@ -67,15 +67,23 @@ propainter_env\Scripts\activate  # Windows
 pip3 install -r requirements.txt
 ```
 
-#### 主要依赖包说明
+#### 主要依赖包说明（基于实际requirements.txt）
+- `av` - 用于视频解码
+- `addict` - 提供类似JavaScript对象的字典
+- `einops` - 灵活强大的张量操作库
+- `future` - Python 2/3 兼容性库
+- `numpy` - 科学计算基础库
+- `scipy` - 科学计算工具集
+- `opencv-python` - 计算机视觉库
+- `matplotlib` - 数据可视化
+- `scikit-image` - 图像处理算法集合
 - `torch>=1.7.1` - PyTorch深度学习框架
-- `torchvision>=0.8.2` - 计算机视觉工具包
-- `opencv-python` - 图像和视频处理
-- `numpy` - 数值计算
-- `scipy` - 科学计算
-- `einops` - 张量操作
-- `timm` - 预训练模型库
-- `imageio-ffmpeg` - 视频编解码
+- `torchvision>=0.8.2` - PyTorch的计算机视觉库
+- `imageio-ffmpeg` - 用于读写视频文件
+- `pyyaml` - YAML文件解析器
+- `requests` - HTTP请求库
+- `timm` - PyTorch图像模型库
+- `yapf` - Python代码格式化工具
 
 ### 4. 验证安装
 

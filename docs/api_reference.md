@@ -28,31 +28,27 @@ python inference_propainter.py [OPTIONS]
 |------|------|--------|------|
 | `--output` | str | `results` | 输出结果的文件夹路径 |
 | `--save_frames` | bool | False | 是否保存逐帧结果 |
-| `--save_flow` | bool | False | 是否保存光流结果 |
+| `--save_fps` | int | 24 | 输出视频帧率 |
 
 ##### 视频处理
 | 参数 | 类型 | 默认值 | 描述 |
 |------|------|--------|------|
-| `--height` | int | None | 处理视频的目标高度 |
-| `--width` | int | None | 处理视频的目标宽度 |
+| `--height` | int | -1 | 处理视频的目标高度（-1表示使用原始高度） |
+| `--width` | int | -1 | 处理视频的目标宽度（-1表示使用原始宽度） |
 | `--resize_ratio` | float | 1.0 | 视频缩放比例 |
-| `--fps` | float | None | 输出视频帧率 |
+| `--mode` | str | `video_inpainting` | 处理模式：video_inpainting 或 video_outpainting |
+| `--scale_h` | float | 1.0 | 视频外扩模式的高度缩放比例 |
+| `--scale_w` | float | 1.2 | 视频外扩模式的宽度缩放比例 |
 
-##### 内存优化
+##### 内存与性能优化
 | 参数 | 类型 | 默认值 | 描述 |
 |------|------|--------|------|
-| `--fp16` | bool | False | 使用半精度浮点数推理 |
-| `--neighbor_length` | int | 10 | 局部邻居帧数量 |
-| `--ref_stride` | int | 10 | 全局参考帧步长 |
-| `--subvideo_length` | int | 80 | 子视频分段长度 |
-
-##### 模型配置
-| 参数 | 类型 | 默认值 | 描述 |
-|------|------|--------|------|
-| `--model` | str | `ProPainter` | 使用的模型名称 |
-| `--ckpt` | str | `weights/ProPainter.pth` | 模型权重文件路径 |
-| `--flow_ckpt` | str | `weights/recurrent_flow_completion.pth` | 光流补全模型路径 |
-| `--raft_ckpt` | str | `weights/raft-things.pth` | RAFT模型路径 |
+| `--fp16` | bool | False | 使用半精度(fp16)推理以降低显存消耗 |
+| `--neighbor_length` | int | 10 | 用于修复的局部邻居帧数量 |
+| `--ref_stride` | int | 10 | 全局参考帧的采样步长 |
+| `--subvideo_length` | int | 80 | 长视频分段处理的子视频长度 |
+| `--mask_dilation` | int | 4 | 掩码膨胀核的大小，用于视频和光流掩码 |
+| `--raft_iter` | int | 20 | RAFT光流估计的迭代次数 |
 
 #### 使用示例
 

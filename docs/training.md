@@ -75,95 +75,105 @@ python scripts/compute_flow.py \
 
 ### 光流补全网络配置
 
-配置文件：`configs/train_flowcomp.json`
+配置文件：`configs/train_flowcomp.json` (实际项目配置)
 
 ```json
 {
-    "name": "FlowCompletion_Train",
-    "model": "flowcomp",
-    "gpu_ids": [0],
-    "datasets": {
-        "train": {
-            "name": "FlowCompTrainDataset",
-            "data_root": "datasets/youtube-vos",
-            "flow_root": "datasets/youtube-vos/flows_432_240",
-            "num_frames": 5,
-            "size": [432, 240],
-            "batch_size": 8
+    "seed": 2023,
+    "save_dir": "experiments_model/",
+    "train_data_loader": {
+        "name": "youtube-vos",
+        "video_root": "your_video_root",
+        "flow_root": "your_flow_root",
+        "w": 432,
+        "h": 240,
+        "num_local_frames": 10,
+        "num_ref_frames": 1,
+        "load_flow": 0
+    },
+    "losses": {
+        "flow_weight": 0.25
+    },
+    "model": {
+        "net": "recurrent_flow_completion"
+    },
+    "trainer": {
+        "version": "trainer_flow_w_edge",
+        "type": "Adam",
+        "beta1": 0,
+        "beta2": 0.99,
+        "lr": 5e-5,
+        "batch_size": 8,
+        "num_workers": 4,
+        "num_prefetch_queue": 4,
+        "log_freq": 100,
+        "save_freq": 5e3,
+        "iterations": 700e3,
+        "scheduler": {
+            "type": "MultiStepLR",
+            "milestones": [
+                300e3, 400e3, 500e3, 600e3
+            ],
+            "gamma": 0.2
         }
-    },
-    "train": {
-        "lr": 1e-4,
-        "lr_scheme": "MultiStepLR",
-        "lr_steps": [100000, 200000],
-        "lr_gamma": 0.5,
-        "total_iter": 300000,
-        "warmup": 1000,
-        "beta1": 0.9,
-        "beta2": 0.999,
-        "weight_decay": 0,
-        "save_freq": 10000,
-        "val_freq": 5000
-    },
-    "loss": {
-        "l1_weight": 1.0,
-        "flow_weight": 1.0,
-        "warp_weight": 0.1
     }
 }
 ```
 
 ### ProPainter主网络配置
 
-配置文件：`configs/train_propainter.json` (基于实际项目配置)
+配置文件：`configs/train_propainter.json` (实际项目配置)
 
 ```json
 {
-    "name": "ProPainter_Train",
-    "model": "propainter",
-    "gpu_ids": [0],
-    "strict_load": false,
-    
-    "datasets": {
-        "train": {
-            "name": "InpaintingTrain",
-            "data_root": "datasets/youtube-vos/JPEGImages_432_240",
-            "flow_root": "datasets/youtube-vos/flows_432_240", 
-            "mask_root": "datasets/youtube-vos/test_masks",
-            "num_local_frames": 5,
-            "num_ref_frames": -1,
-            "size": [432, 240],
-            "random_reverse_clip": true,
-            "flip": true
-        }
+    "seed": 2023,
+    "save_dir": "experiments_model/",
+    "train_data_loader": {
+        "name": "youtube-vos",
+        "video_root": "your_video_root",
+        "flow_root": "your_flow_root",
+        "w": 432,
+        "h": 240,
+        "num_local_frames": 10, 
+        "num_ref_frames": 6,
+        "load_flow": 0
     },
-    
-    "train": {
+    "losses": {
+        "hole_weight": 1,
+        "valid_weight": 1,
+        "flow_weight": 1,
+        "adversarial_weight": 0.01,
+        "GAN_LOSS": "hinge",
+        "perceptual_weight": 0
+    },
+    "model": {
+        "net": "propainter",
+        "no_dis": 0,
+        "load_d": 1,
+        "interp_mode": "nearest"
+    },
+    "trainer": {
+        "version": "trainer",
+        "type": "Adam",
+        "beta1": 0,
+        "beta2": 0.99,
         "lr": 1e-4,
-        "lr_scheme": "MultiStepLR",
-        "lr_steps": [400000],
-        "lr_gamma": 0.1,
-        "total_iter": 700000,
-        "warmup": -1,
-        "beta1": 0.9,
-        "beta2": 0.999,
-        "weight_decay": 0,
-        "save_freq": 10000,
-        "val_freq": 5000,
+        "batch_size": 8,
+        "num_workers": 8,
+        "num_prefetch_queue": 8,
         "log_freq": 100,
-        "batch_size": 8
-    },
-    
-    "loss": {
-        "l1_weight": 1.0,
-        "perceptual_weight": 0.1,
-        "style_weight": 120.0,
-        "adversarial_weight": 0.01
+        "save_freq": 1e4,
+        "iterations": 700e3,
+        "scheduler": {
+            "type": "MultiStepLR",
+            "milestones": [
+                400e3
+            ],
+            "gamma": 0.1
+        }
     }
 }
 ```
-
-> **注意**: 以上配置基于项目实际的配置文件，与论文中可能略有差异。
 
 ## 训练流程
 
@@ -173,12 +183,14 @@ python scripts/compute_flow.py \
 python train.py -c configs/train_flowcomp.json
 ```
 
-训练参数说明（基于实际配置文件）：
-- **学习率**: 5e-5，使用MultiStepLR调度
+**光流补全网络训练参数说明**：
+- **学习率**: 5e-5，Adam优化器，beta1=0, beta2=0.99
 - **批次大小**: 8
-- **训练迭代**: 700,000次
-- **保存频率**: 每5,000次迭代保存一次
-- **学习率衰减**: 在300k, 400k, 500k, 600k步时衰减
+- **训练迭代**: 700,000 (700e3)次
+- **保存频率**: 每5,000 (5e3)次迭代保存checkpoint
+- **学习率衰减**: MultiStepLR，在300k, 400k, 500k, 600k步时衰减0.2倍
+- **局部帧数**: 10帧时序建模窗口
+- **参考帧数**: 1帧用于光流补全
 
 ### 第二步：训练ProPainter主网络
 
@@ -188,22 +200,26 @@ python train.py -c configs/train_propainter.json
 
 **重要**: 确保已经训练好光流补全网络，因为ProPainter依赖光流补全的结果。
 
-#### 训练参数说明（基于实际配置文件）：
+#### ProPainter主网络训练参数说明：
 
 | 参数 | 值 | 说明 |
 |------|-----|------|
-| **学习率** | 1e-4 | 初始学习率 |
-| **学习率调度** | MultiStepLR | 在400k步时衰减0.1倍 |
+| **学习率** | 1e-4 | 初始学习率，Adam优化器 |
+| **学习率调度** | MultiStepLR | 在400k (400e3)步时衰减0.1倍 |
 | **批次大小** | 8 | 每个GPU的批次大小 |
-| **训练迭代** | 700,000次 | 总训练步数 |
-| **保存频率** | 10,000步 | checkpoint保存间隔 |
-| **验证频率** | 5,000步 | 验证评估间隔 |
+| **训练迭代** | 700,000 (700e3)次 | 总训练步数 |
+| **保存频率** | 10,000 (1e4)步 | checkpoint保存间隔 |
 | **日志频率** | 100步 | 训练日志输出间隔 |
+| **局部帧数** | 10 | 局部邻居帧数量 |
+| **参考帧数** | 6 | 全局参考帧数量 |
 
-#### 数据增强策略：
-- **随机翻转**: 水平翻转增强
-- **随机反向**: 时序反向播放
-- **帧采样**: 动态帧数采样
+#### 损失函数权重配置：
+- **hole_weight**: 1.0 - 掩码区域重建损失权重
+- **valid_weight**: 1.0 - 有效区域重建损失权重  
+- **flow_weight**: 1.0 - 光流一致性损失权重
+- **adversarial_weight**: 0.01 - 对抗损失权重
+- **GAN_LOSS**: "hinge" - GAN损失类型
+- **perceptual_weight**: 0 - 感知损失权重（当前禁用）
 
 ### 恢复训练
 
